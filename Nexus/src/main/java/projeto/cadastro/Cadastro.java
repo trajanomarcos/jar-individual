@@ -14,7 +14,7 @@ public class Cadastro {
     public void cadastrar() {
         Scanner scanner = new Scanner(System.in);
         Prints prints = new Prints();
-        prints.user();
+        prints.username();
 
         email = scanner.nextLine();
 
@@ -31,6 +31,5 @@ public class Cadastro {
         System.out.printf("\n\n|    Seu Token foi Gerado: %s    |\n", tokens);
 
         Conectar conectar = new Conectar();
-        conectar.realizarCadastro(email, tokens, fkFuncionario);
     }
 }

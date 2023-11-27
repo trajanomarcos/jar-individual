@@ -21,7 +21,7 @@ public class Prints {
         System.out.println("O link do nosso site é:");
         System.out.println("http://34.225.182.14:8080");
         System.out.println("Apos fazer o cadastro, execute novamente o nosso client.");
-    }+
+    }
 
     
     public void username() {
