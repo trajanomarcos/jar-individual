@@ -1,22 +1,33 @@
 package projeto.captura.disco;
 
 import projeto.conexao.Conectar;
+import projeto.Logs;
 
 public class DadosDisco {
-    String nome;
-    String modelo = "NULL";
+    String modelo;
+    Double capMax;
+    Double usoAtual;
     String montagem;
-    Double espTotal;
-    Double espLivre;
-    Double espUsado;
+    String endIPV4;
+    Integer fkAlerta;
+    Integer fkComponente;
+    String email;
 
-    public DadosDisco(String nome, String modelo, String montagem, Double discTotal) {
-        this.nome = nome;
+    public DadosDisco(String modelo, Double capMax, Double usoAtual,
+                      String montagem, String endIPV4, Integer fkAlerta,
+                      Integer fkComponente, String email) {
         this.modelo = modelo;
+        this.capMax = capMax;
+        this.usoAtual = usoAtual;
         this.montagem = montagem;
-        this.espTotal = discTotal;
+        this.endIPV4 = endIPV4;
+        this.fkAlerta = fkAlerta;
+        this.fkComponente = fkComponente;
+        this.email = email;
+
+        Double livre = capMax - usoAtual;
 
         Conectar conectar = new Conectar();
-        conectar.DadosDisco(modelo, nome, discTotal, montagem);
+        conectar.DadosDisco(this.modelo, this.capMax, this.usoAtual, this.montagem, this.endIPV4, this.fkAlerta, this.fkComponente, this.email);
     }
 }

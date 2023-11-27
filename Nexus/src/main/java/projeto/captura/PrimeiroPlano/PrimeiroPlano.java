@@ -1,38 +1,66 @@
 package projeto.captura.PrimeiroPlano;
 
 import com.github.britooo.looca.api.core.Looca;
+import com.github.britooo.looca.api.group.processos.Processo;
+import projeto.print.Prints;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class PrimeiroPlano {
     Looca looca = new Looca();
-    private Integer pid;
     private String name;
     private Double usoCPU;
     private Double usoMem;
     private Double usoDisk;
 
-    public void dadosPrimeiro(){
-        int size = looca.getGrupoDeProcessos().getProcessos().size();
+    public String dadosPrimeiro(String email) {
+        // Supondo que looca.getGrupoDeProcessos().getProcessos() retorna uma List de Processo
+        List<Processo> processos = looca.getGrupoDeProcessos().getProcessos();
 
-        for (int i = 0; i < size; i++) {
-            pid = looca.getGrupoDeProcessos().getProcessos().get(i).getPid();
-            name = looca.getGrupoDeProcessos().getProcessos().get(i).getNome();
-            usoCPU = looca.getGrupoDeProcessos().getProcessos().get(i).getUsoCpu();
-            usoMem = looca.getGrupoDeProcessos().getProcessos().get(i).getUsoMemoria();
-            usoDisk = ((Double.valueOf(looca.getGrupoDeProcessos().getProcessos().get(i).getBytesUtilizados()) / 1024) / 1024) / 1024;
+        // Ordenar processos por uso de CPU em ordem decrescente
+        List<Processo> top10Cpu = processos.stream()
+                .sorted(Comparator.comparing(Processo::getUsoCpu).reversed())
+                .limit(10)
+                .collect(Collectors.toList());
 
-            System.out.println("""
-                    Pid: %d
-                    Nome: %s
-                    Uso de CPU: %.2f
-                    Uso de RAM: %.2f
-                    Uso de Disco: %.2f
-                    """.formatted(pid, name, usoCPU, usoMem, usoDisk));
+        // Ordenar processos por uso de disco em ordem decrescente
+        List<Processo> top10Disco = processos.stream()
+                .sorted(Comparator.comparing(p -> ((Double.valueOf(p.getBytesUtilizados()) / 1024) / 1024) / 1024, Comparator.reverseOrder()))
+                .limit(10)
+                .collect(Collectors.toList());
+
+        // Ordenar processos por uso de memória em ordem decrescente
+        List<Processo> top10Memoria = processos.stream()
+                .sorted(Comparator.comparing(Processo::getUsoMemoria).reversed())
+                .limit(10)
+                .collect(Collectors.toList());
+
+        DadosPrimeiroPlano[] primeiroPlano = new DadosPrimeiroPlano[30];
 
 
+        // Iterar sobre os processos ordenados por uso de CPU e preencher o array
+        for (int i = 0; i < 10; i++) {
+            Processo processo = top10Cpu.get(i);
+            primeiroPlano[i] = new DadosPrimeiroPlano(processo.getNome(), processo.getUsoMemoria(), ((Double.valueOf(processo.getBytesUtilizados()) / 1024) / 1024) / 1024, processo.getUsoCpu(), email
+            );
         }
-    }
-
-    public void armazenarProcessos() {
-
+        for (int i = 0; i < 10; i++) {
+            Processo processo = top10Disco.get(i);
+            primeiroPlano[i] = new DadosPrimeiroPlano(processo.getNome(), processo.getUsoMemoria(), ((Double.valueOf(processo.getBytesUtilizados()) / 1024) / 1024) / 1024, processo.getUsoCpu(), email
+            );
+        }
+        for (int i = 0; i < 10; i++) {
+            Processo processo = top10Memoria.get(i);
+            primeiroPlano[i] = new DadosPrimeiroPlano(processo.getNome(), processo.getUsoMemoria(), ((Double.valueOf(processo.getBytesUtilizados()) / 1024) / 1024) / 1024, processo.getUsoCpu(), email
+            );
+        }
+        String mensagem = """
+                *------------------------------------------------------------*
+                |                 Processos em Primeiro Plano                 |
+                *------------------------------------------------------------*
+                """;
+        return mensagem;
     }
 }

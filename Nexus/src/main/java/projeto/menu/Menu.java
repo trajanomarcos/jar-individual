@@ -1,9 +1,8 @@
 package projeto.menu;
 
-import projeto.cadastro.Cadastro;
 import projeto.login.Login;
 import projeto.print.Prints;
-
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Menu {
@@ -11,29 +10,39 @@ public class Menu {
 
     public void exibirMenu() {
         Login login = new Login();
-        Cadastro cadastro = new Cadastro();
         Prints prints = new Prints();
         Scanner scanner = new Scanner(System.in);
 
+        boolean sair = false;
 
         while (!sair) {
-            prints.menu();
-            int opcao = scanner.nextInt();
-            switch (opcao) {
-                case 1:
-                    sair = login.login();
-                    break;
-                case 2:
-                    cadastro.cadastrar();
-                    break;
-                case 0:
-                    prints.sair();
-                    sair = true;
-                    break;
-                default:
-                    break;
+            try {
+                prints.menu();
+                int opcao = scanner.nextInt();
+
+                switch (opcao) {
+                    case 1:
+                        sair = login.login();
+                        break;
+                    case 0:
+                        prints.sair();
+                        sair = true;
+                        break;
+                    case 9:
+                        prints.site();
+                    default:
+                        System.out.println("Opção inválida. Tente novamente.");
+                        break;
+                }
+            } catch (InputMismatchException e) {
+                // Limpar o buffer do scanner e consumir a entrada inválida
+                scanner.nextLine();
+
+                System.out.println("Entrada inválida. Por favor, insira um número válido.");
             }
         }
+
+        scanner.close();
     }
 }
 // Realizado Pela Nexus Enterprises :)

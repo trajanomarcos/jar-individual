@@ -2,15 +2,21 @@ package projeto.conexao;
 
 import projeto.captura.Monitoramento;
 import projeto.menu.Menu;
+import projeto.Logs;
+import projeto.print.Prints;
 
 import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class Conectar {
-
+    ConectarSQL conectarSQL = new ConectarSQL();
     private String url = "jdbc:mysql://localhost:3306/NEXUS";
-    private String user = "nexus_user";
+    private String user = "root";
     private String passwd = "nexus123";
 
+    private Logs informacoes = new Logs();
     private Menu menu = new Menu();
 
     private String email;
@@ -20,85 +26,78 @@ public class Conectar {
     public Boolean Logar(String email, String pass) {
         this.email = email;
         this.pass = pass;
+        Prints prints = new Prints();
 
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection conexao = DriverManager.getConnection(url, user, passwd);
+        Monitoramento monitoramento = new Monitoramento();
+        Boolean login = conectarSQL.Logar(email, pass);
 
-            Statement statement = conexao.createStatement();
+        String sqlSelect = "SELECT emailCorporativo, token FROM Funcionario;";
+        if (login == true){
+            System.out.println("Sessao encerrada\n\n");
+        } else {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+                Connection conexao = DriverManager.getConnection(url, user, passwd);
+                Statement statement = conexao.createStatement();
+                ResultSet resposta = statement.executeQuery(sqlSelect);
 
-            String sqlSelect = "SELECT email, token FROM Usuario;";
+                while (resposta.next()) {
+                    String username = resposta.getString("emailCorporativo");
+                    String token = resposta.getString("token");
 
-            ResultSet resposta = statement.executeQuery(sqlSelect);
+                    if (this.email.equals(username) && this.pass.equals(token)) {
+                        logado = true;
 
-            while (resposta.next()) {
-                String username = resposta.getString("email");
-                String token = resposta.getString("token");
+                        prints.limparConsole();
+                        System.out.println("""
+                                Login Realizado com Sucesso!
+                                                            
+                                    Seja Bem-Vindo
+                                """);
+                        System.out.println(username);
+                        monitoramento.monitor(username);
 
-                if (this.email.equals(username) && this.pass.equals(token)) {
-                    logado = true;
-                    System.out.println("""
-                            Login Realizado com Sucesso!
-                            
-                                Seja Bem-Vindo
-                            """);
-                    Monitoramento monitor = new Monitoramento();
-                    monitor.monitor();
+                    } else {
+                        logado = false;
+                    }
                 }
+
+                resposta.close();
+                statement.close();
+                conexao.close();
+            } catch (SQLException | ClassNotFoundException throwables) {
+                System.out.println("""
+                                            
+                        Nenhum usuario encontrado
+                                            
+                        Por favor verifique as credenciais
+                        """);
+                logado = false;
             }
-
-            resposta.close();
-            statement.close();
-            conexao.close();
-        } catch (SQLException | ClassNotFoundException throwables) {
-            System.out.println("""
-                                        
-                    Nenhum usuario encontrado
-                                        
-                    Por favor verifique as credenciais
-                    """);
-            logado = false;
+            return logado;
         }
-        return logado;
+        return login;
     }
 
-    public void realizarCadastro(String email, String pass, Integer fkFuncionario) {
+    public Conectar DadosDisco(String modelo, Double capMax, Double usoAtual, String montagem, String endIPV4, Integer fkAlerta, Integer fkComponente, String email) {
+
+        conectarSQL.DadosDisco(modelo, capMax, usoAtual, montagem, endIPV4, fkAlerta, fkComponente, email);
 
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conexao = DriverManager.getConnection(url, user, passwd);
-            String cadastro = "INSERT INTO Usuario VALUES (NULL, ?, ?, (SELECT idFuncionario FROM Funcionario WHERE emailCorporativo = ?));";
-            PreparedStatement instrucao = conexao.prepareStatement(cadastro);
-
-            instrucao.setString(1, email);
-            instrucao.setString(2, pass);
-            instrucao.setString(3, email);
-
-            instrucao.execute();
-            instrucao.close();
-            menu.exibirMenu();
-            conexao.close();
-        } catch (SQLException | ClassNotFoundException throwables) {
-            System.err.println("Cadastro Nao realizado\nUsuario ja existente");
-            throwables.printStackTrace();
-        }
-    }
-
-    public Conectar DadosDisco(String nome, String modelo, Double discTotal, String montagem) {
-
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection conexao = DriverManager.getConnection(url, user, passwd);
-
-            String cadastro = "INSERT INTO Componente VALUES (NULL, ?, ?, ?, ?, ?);";
+            String cadastro = "INSERT INTO Registro (modelo, capacidadeMax, usoAtual, montagem, enderecoIPV4, dataHora, fkAlerta, fkComponente, fkMaquina) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, (SELECT idMaquina FROM Maquina JOIN Funcionario ON Maquina.fkFuncionario = idFuncionario WHERE emailCorporativo = ?));";
 
             PreparedStatement instrucao = conexao.prepareStatement(cadastro);
 
-            instrucao.setString(1, "Disco Rígido");
-            instrucao.setString(2, nome);
-            instrucao.setDouble(3, discTotal);
+            instrucao.setString(1, modelo);
+            instrucao.setDouble(2, capMax);
+            instrucao.setDouble(3, usoAtual);
             instrucao.setString(4, montagem);
-            instrucao.setInt(5, 1);
+            instrucao.setString(5, endIPV4);
+            instrucao.setInt(6, fkAlerta);
+            instrucao.setInt(7, fkComponente);
+            instrucao.setString(8, email);
 
             instrucao.execute();
 
@@ -112,14 +111,23 @@ public class Conectar {
         return null;
     }
 
-    public Conectar inserirProcessos(){
+    public Conectar inserirProcessos(String name, Double usoCPU, Double usoMem, Double usoDisk, String email) {
+
+        conectarSQL.inserirProcessos(name, usoCPU,usoMem, usoDisk, email);
+
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conexao = DriverManager.getConnection(url, user, passwd);
 
-            String cadastro = "INSERT INTO Componente VALUES (NULL, ?, ?, ?, ?, ?);";
+            String cadastro = "INSERT INTO Processo (nome, usoAtualRAM, usoAtualDisco, usoAtualCPU, dataHora, fkMaquina) VALUES (?, ?, ?, ?, NOW(), (SELECT idMaquina FROM Maquina JOIN Funcionario ON Maquina.fkFuncionario = idFuncionario WHERE emailCorporativo = ?));";
 
             PreparedStatement instrucao = conexao.prepareStatement(cadastro);
+
+            instrucao.setString(1, name);
+            instrucao.setDouble(2, usoMem);
+            instrucao.setDouble(3, usoDisk);
+            instrucao.setDouble(4, usoCPU);
+            instrucao.setString(5, email);
 
             instrucao.execute();
 
@@ -133,18 +141,26 @@ public class Conectar {
         return null;
     }
 
-    public Conectar inserirMemoria(Double total){
+    public Conectar inserirMemoria(String modelo, Double capMax, Double usoAtual, String montagem, String endIPV4, Integer fkAlerta, Integer fkComponente, String email){
+
+        conectarSQL.inserirMemoria(modelo, capMax, usoAtual, montagem, endIPV4, fkAlerta, fkComponente, email);
+
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conexao = DriverManager.getConnection(url, user, passwd);
 
-            String cadastro = "INSERT INTO Componente (nome, capacidadeMax, fkMaquina) VALUES (?, ?, ?);";
+            String cadastro = "INSERT INTO Registro (modelo, capacidadeMax, usoAtual, montagem, enderecoIPV4, dataHora, fkAlerta, fkComponente, fkMaquina) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, (SELECT idMaquina FROM Maquina JOIN Funcionario ON Maquina.fkFuncionario = idFuncionario WHERE emailCorporativo = ?));";
 
             PreparedStatement instrucao = conexao.prepareStatement(cadastro);
 
-            instrucao.setString(1, "Memória RAM");
-            instrucao.setDouble(2, total);
-            instrucao.setInt(3, 1);
+            instrucao.setString(1, modelo);
+            instrucao.setDouble(2, capMax);
+            instrucao.setDouble(3, usoAtual);
+            instrucao.setString(4, montagem);
+            instrucao.setString(5, endIPV4);
+            instrucao.setInt(6, fkAlerta);
+            instrucao.setInt(7, fkComponente);
+            instrucao.setString(8, email);
 
             instrucao.execute();
 
@@ -158,18 +174,26 @@ public class Conectar {
         return null;
     }
 
-    public Conectar inserirProcessador(String modelo){
+    public Conectar inserirProcessador(String modelo, Double capMax, Double usoAtual, String montagem, String endIPV4, Integer fkAlerta, Integer fkComponente, String email){
+
+        conectarSQL.inserirProcessador(modelo, capMax, usoAtual, montagem, endIPV4, fkAlerta, fkComponente, email);
+
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conexao = DriverManager.getConnection(url, user, passwd);
 
-            String cadastro = "INSERT INTO Componente (nome, modelo, fkMaquina) VALUES (?, ?, ?);";
+            String cadastro = "INSERT INTO Registro (modelo, capacidadeMax, usoAtual, montagem, enderecoIPV4, dataHora, fkAlerta, fkComponente, fkMaquina) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, (SELECT idMaquina FROM Maquina JOIN Funcionario ON Maquina.fkFuncionario = idFuncionario WHERE emailCorporativo = ?));";
 
             PreparedStatement instrucao = conexao.prepareStatement(cadastro);
 
-            instrucao.setString(1, "Processador");
-            instrucao.setString(2, modelo);
-            instrucao.setInt(3, 1);
+            instrucao.setString(1, modelo);
+            instrucao.setDouble(2, capMax);
+            instrucao.setDouble(3, usoAtual);
+            instrucao.setString(4, montagem);
+            instrucao.setString(5, endIPV4);
+            instrucao.setInt(6, fkAlerta);
+            instrucao.setInt(7, fkComponente);
+            instrucao.setString(8, email);
 
             instrucao.execute();
 

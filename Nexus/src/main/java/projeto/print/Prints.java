@@ -1,55 +1,41 @@
 package projeto.print;
 
 public class Prints {
+    
     public void inicial(){
         System.out.println("Seja Bem-Vindo a Plataforma NEXUS!\n");
+        System.out.println("Lembre" +
+                "m-se que para realizar o login na nossa aplicação é necessario fazer o cadastro no nosso site!");
     }
+    
     public void menu() {
         System.out.println("\nPor Favor realize o Login para poder acessar \ntodas as areas da plataforma! \n");
-        System.out.println("Caso não possua um Login, realize o Cadastro\n");
         System.out.println("----------------------------------------------");
         System.out.println("| 1 - Login                                  |");
-        System.out.println("| 2 - Cadastro                               |");
         System.out.println("| 0 - Sair                                   |");
+        System.out.println("| 9 - Ver site                               |");
         System.out.println("----------------------------------------------");
     }
+
+    public void site(){
+        System.out.println("O link do nosso site é:");
+        System.out.println("http://34.225.182.14:8080");
+        System.out.println("Apos fazer o cadastro, execute novamente o nosso client.");
+    }+
+
+    
     public void username() {
         System.out.println("\nInsira seu email: ");
     }
-    public void passwordUser(){
-        System.out.println("\n Insira sua senha: ");
-    }
-    public void confPassUser(){
-        System.out.println("\n Confirme sua senha: ");
-    }
-    public void password() {
-        System.out.println("\nInsira sua token: ");
-    }
+    
     public void token() {
         System.out.println("\nInsira seu token:");
     }
-    public void erroUser() {
-        System.out.println("\nO usuario está incorreto");
-    }
-    public void autenticado() {
-        System.out.println("\nLogin Realizado com Sucesso!");
-    }
-    public void erroToken() {
-        System.out.println("\nNão foi possivel autenticar o token!");
-    }
+    
     public void sair() {
         System.out.println("\nSessão Finalizada!");
     }
-
-    public void user() {
-        System.out.println("\nInsira seu email: ");
-    }
-    public void pass() {
-        System.out.println("\nInsira seu token: ");
-    }
-    public void afterLogin(){
-        System.out.println("----------------------------------------------");
-    }
+    
     public void menuMonitorar() {
         System.out.println("""
                 Qual dos Monitoramentos deseja visualizar 
@@ -61,6 +47,12 @@ public class Prints {
                 | 4 - Primeiro Plano                    |
                 *---------------------------------------*
                 """);
+    }
+
+    public void limparConsole(){
+        for(int i = 0; i < 100; i++){
+            System.out.println(" ");
+        }
     }
 }
 
